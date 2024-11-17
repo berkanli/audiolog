@@ -112,7 +112,7 @@ fun RecorderScreen(recorder: Recorder, navController: NavController, settingsMan
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Waveform Visualizer
-                WaveformVisualizer(buffer = recorder.getCombinedBuffer())
+                RealTimeWaveformVisualizer(recorder)
             }
         }
     }
