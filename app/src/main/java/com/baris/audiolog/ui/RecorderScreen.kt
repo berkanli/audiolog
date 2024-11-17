@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,7 +15,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,14 +27,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.baris.audiolog.audio.Recorder
+import com.baris.audiolog.preferences.SettingsManager
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecorderScreen(recorder: Recorder, navController: NavController) {
+fun RecorderScreen(recorder: Recorder, navController: NavController, settingsManager: SettingsManager) {
     var isRecording by remember { mutableStateOf(false) }
     var showFileSaveScreen by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf("") }
-
+    var startTime by remember { mutableStateOf<LocalDateTime?>(null) }
 
     if (showFileSaveScreen) {
         // File Save Screen
@@ -88,9 +88,16 @@ fun RecorderScreen(recorder: Recorder, navController: NavController) {
                             recorder.stop()
                             isRecording = false
                             showFileSaveScreen = true // Navigate to file save screen
+
+                            // Set the default file name to the start time with the file extension
+                            startTime?.let {
+                                val audioFormat = settingsManager.getAudioFormat()
+                                fileName = it.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")) + audioFormat.extension
+                            }
                         } else {
                             recorder.start()
                             isRecording = true
+                            startTime = LocalDateTime.now() // Capture the start time
                         }
                     }
                 ) {

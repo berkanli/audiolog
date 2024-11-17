@@ -17,7 +17,7 @@ fun MyAppNavHost(recorder: Recorder, settingsManager: SettingsManager) {
 
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
-            RecorderScreen(recorder, navController)
+            RecorderScreen(recorder, navController, settingsManager)
         }
         composable("settings") {
             SettingsScreen(navController, settingsManager)
