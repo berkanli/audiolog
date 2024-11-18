@@ -46,14 +46,29 @@ fun WaveformVisualizer(
         val step = if (size.width > 0) maxOf(1, buffer.size / size.width.toInt()) else 1
 
         for (i in buffer.indices step step) {
-            val x = i.toFloat() / buffer.size * size.width
+            val x = i.toFloat() * size.width / buffer.size
             val amplitude = (buffer[i].toFloat() / Short.MAX_VALUE) * midY
+            val nextAmplitude = if (i + step < buffer.size) {
+                (buffer[i + step].toFloat() / Short.MAX_VALUE) * midY
+            } else amplitude
+
             drawLine(
                 color = color,
                 start = Offset(x, midY - amplitude),
-                end = Offset(x, midY + amplitude),
+                end = Offset(x + size.width / buffer.size, midY - nextAmplitude),
                 strokeWidth = strokeWidth
             )
         }
+
+//        for (i in buffer.indices step step) {
+//            val x = i.toFloat() / buffer.size * size.width
+//            val amplitude = (buffer[i].toFloat() / Short.MAX_VALUE) * midY
+//            drawLine(
+//                color = color,
+//                start = Offset(x, midY - amplitude),
+//                end = Offset(x, midY + amplitude),
+//                strokeWidth = strokeWidth
+//            )
+//        }
     }
 }

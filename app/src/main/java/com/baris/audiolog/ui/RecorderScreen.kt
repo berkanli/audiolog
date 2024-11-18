@@ -1,5 +1,6 @@
 package com.baris.audiolog.ui
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -33,7 +34,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecorderScreen(recorder: Recorder, navController: NavController, settingsManager: SettingsManager) {
+fun RecorderScreen(context: Context, recorder: Recorder, navController: NavController, settingsManager: SettingsManager) {
     var isRecording by remember { mutableStateOf(false) }
     var showFileSaveScreen by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf("") }
@@ -45,7 +46,10 @@ fun RecorderScreen(recorder: Recorder, navController: NavController, settingsMan
             fileName = fileName,
             onFileNameChange = { fileName = it },
             onSave = {
-                recorder.saveRecording(fileName)
+
+                val audioData = recorder.getAudioData() // Implement this to retrieve audio bytes
+                recorder.saveFilePublicly(context, fileName, audioData!!)
+                //recorder.saveRecording(fileName)
                 showFileSaveScreen = false // Reset to the initial state
             },
             onDelete = {
@@ -95,9 +99,12 @@ fun RecorderScreen(recorder: Recorder, navController: NavController, settingsMan
                                 fileName = it.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")) + audioFormat.extension
                             }
                         } else {
-                            recorder.start()
+                            startTime = LocalDateTime.now()
+                            val audioFormat = settingsManager.getAudioFormat()
+                            val defaultFileName = startTime!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + audioFormat.extension
+                            recorder.start(defaultFileName)
                             isRecording = true
-                            startTime = LocalDateTime.now() // Capture the start time
+
                         }
                     }
                 ) {

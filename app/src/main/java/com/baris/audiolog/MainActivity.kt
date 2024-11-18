@@ -18,6 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import com.baris.audiolog.audio.FileAudioFileWriter
 import com.baris.audiolog.navigation.MyAppNavHost
 import com.baris.audiolog.audio.PcmFileWriter
 import com.baris.audiolog.audio.Recorder
@@ -25,8 +27,7 @@ import com.baris.audiolog.preferences.SettingsManager
 import com.baris.audiolog.ui.theme.AudioLogTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import java.io.File
-import java.io.FileOutputStream
+import java.io.IOException
 
 class MainActivity : ComponentActivity() {
     private lateinit var recorder: Recorder
@@ -36,10 +37,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Create the output file for saving the audio data
-        val outputFile = File(getExternalFilesDir(null), "audio_recording.pcm")
-        val fileOutputStream = FileOutputStream(outputFile)
-
-        recorder = Recorder(PcmFileWriter(fileOutputStream))
+        val fileAudioFileWriter = FileAudioFileWriter(
+            context = this, // Use the activity context
+            outputDirectory = getExternalFilesDir(null) ?: throw IOException("Failed to get external files directory")
+        )
+        recorder = Recorder(this, fileAudioFileWriter)
         settingsManager = SettingsManager(this)
 
         setContent {
@@ -50,6 +52,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     MyAppNavHost(
+                        context =  this,
                         recorder = recorder,
                         settingsManager = settingsManager
                     )

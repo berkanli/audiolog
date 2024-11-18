@@ -1,8 +1,12 @@
 package com.baris.audiolog.audio
 
+import android.content.ContentValues
+import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,14 +14,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-class Recorder(private val audioFileWriter: AudioFileWriter) {
+class Recorder(private val context: Context, private val audioFileWriter: AudioFileWriter) {
     private var audioRecord: AudioRecord? = null
     private var isRecording = false
     private var recordingJob: Job? = null
     private val temporaryBuffer = mutableListOf<ShortArray>()
     private val maxBufferChunks = 100 // Cap buffer size to prevent memory overuse
 
-    fun start() {
+    fun start(fileName: String) {
         if (isRecording) {
             Log.w("Recorder", "Recording is already in progress")
             return
@@ -62,7 +66,8 @@ class Recorder(private val audioFileWriter: AudioFileWriter) {
                                 }
                                 temporaryBuffer.add(buffer.copyOf())
                             }
-                            audioFileWriter.write(buffer)
+                            audioFileWriter.setOutputFile(fileName)
+                            //audioFileWriter.write(buffer)
                         }
                     }
                 } catch (e: Exception) {
@@ -91,6 +96,10 @@ class Recorder(private val audioFileWriter: AudioFileWriter) {
                 recordingJob?.join()
             }
 
+            synchronized(temporaryBuffer) {
+                temporaryBuffer.clear() // Clear buffer to avoid stale data
+            }
+
             audioRecord?.stop()
             Log.i("Recorder", "Recording stopped")
         } catch (e: Exception) {
@@ -111,6 +120,23 @@ class Recorder(private val audioFileWriter: AudioFileWriter) {
         }
     }
 
+    fun saveFilePublicly(context: Context, fileName: String, audioData: ByteArray) {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
+            put(MediaStore.Audio.Media.MIME_TYPE, "audio/x-wav")
+            put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_RECORDINGS) // Saves to Music folder
+        }
+
+        val resolver = context.contentResolver
+        val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+        uri?.let {
+            resolver.openOutputStream(it)?.use { outputStream ->
+                outputStream.write(audioData)
+            }
+        }
+    }
+
     fun saveRecording(fileName: String) {
         try {
             // Ensure all writes are completed
@@ -123,6 +149,10 @@ class Recorder(private val audioFileWriter: AudioFileWriter) {
         } catch (e: Exception) {
             Log.e("Recorder", "Failed to save recording: ${e.message}")
         }
+    }
+
+    fun getAudioData(): ByteArray? {
+        return audioFileWriter.getRecordedData() // Call the method from the writer
     }
 
     fun deleteTemporaryBuffer() {

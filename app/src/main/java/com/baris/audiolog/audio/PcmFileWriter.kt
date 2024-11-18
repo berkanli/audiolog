@@ -23,4 +23,12 @@ class PcmFileWriter(private val outputStream: FileOutputStream): AudioFileWriter
             Log.e("PcmFileWriter", "Error closing output stream: ${e.message}")
         }
     }
+
+    override fun getRecordedData(): ByteArray {
+        TODO("Not yet implemented")
+    }
+
+    override fun setOutputFile(fileName: String) {
+        TODO("Not yet implemented")
+    }
 }
