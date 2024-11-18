@@ -1,6 +1,10 @@
 package com.baris.audiolog
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -51,11 +55,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
                     MyAppNavHost(
                         context =  this,
                         recorder = recorder,
                         settingsManager = settingsManager
                     )
+
+
                 }
             }
         }

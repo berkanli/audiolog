@@ -52,6 +52,9 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
                 temporaryBuffer.clear() // Reset the buffer
             }
 
+            // Set the output file for writing audio
+            audioFileWriter.setOutputFile(fileName)
+
             // Start a coroutine for reading audio data
             recordingJob = CoroutineScope(Dispatchers.IO).launch {
                 Log.i("Recorder", "Recording coroutine started")
@@ -66,8 +69,9 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
                                 }
                                 temporaryBuffer.add(buffer.copyOf())
                             }
-                            audioFileWriter.setOutputFile(fileName)
-                            //audioFileWriter.write(buffer)
+
+                            // Write the buffer to the file
+                            audioFileWriter.write(buffer)
                         }
                     }
                 } catch (e: Exception) {
