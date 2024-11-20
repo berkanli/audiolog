@@ -1,4 +1,4 @@
-package com.baris.audiolog.ui
+package com.baris.audiolog.ui.components
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

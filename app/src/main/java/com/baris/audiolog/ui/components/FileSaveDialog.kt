@@ -1,4 +1,4 @@
-package com.baris.audiolog.ui
+package com.baris.audiolog.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun FileSaveScreen(
+fun FileSaveDialog(
     fileName: String,
     onFileNameChange: (String) -> Unit,
     onSave: () -> Unit,

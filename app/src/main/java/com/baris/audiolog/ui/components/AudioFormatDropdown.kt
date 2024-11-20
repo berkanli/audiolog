@@ -1,5 +1,4 @@
-package com.baris.audiolog.ui
-
+package com.baris.audiolog.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,13 +15,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.baris.audiolog.preferences.AudioFormat
+import com.baris.audiolog.audio.enums.AudioFileFormat
 
 @Composable
 fun AudioFormatDropdown(
-    selectedFormat: AudioFormat,
-    onFormatChange: (AudioFormat) -> Unit
+    selectedFormat: Int,
+    onFormatChange: (Int) -> Unit
 ) {
+    val supportedFormats = AudioFileFormat.entries.toTypedArray()
     var expanded by remember { mutableStateOf(false) }
 
     Box(
@@ -32,7 +32,7 @@ fun AudioFormatDropdown(
             .clickable { expanded = true }
     ) {
         Text(
-            text = "Audio Format: ${selectedFormat.value}",
+            text = "Audio Format: ${AudioFileFormat.fromEncoding(selectedFormat)}",
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
@@ -43,13 +43,13 @@ fun AudioFormatDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            AudioFormat.entries.forEach { format ->
+            supportedFormats.forEach { audioFormat ->
                 DropdownMenuItem(
                     onClick = {
-                        onFormatChange(format)
+                        onFormatChange(audioFormat.encoding)
                         expanded = false
                     },
-                    text = { Text(text = format.value) }
+                    text = { Text(text = audioFormat.displayName) }
                 )
             }
         }

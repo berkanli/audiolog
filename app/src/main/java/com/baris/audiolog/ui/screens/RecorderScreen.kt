@@ -1,4 +1,4 @@
-package com.baris.audiolog.ui
+package com.baris.audiolog.ui.screens
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,10 +26,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.baris.audiolog.R
 import com.baris.audiolog.audio.Recorder
 import com.baris.audiolog.preferences.SettingsManager
+import com.baris.audiolog.ui.components.FileSaveDialog
+import com.baris.audiolog.ui.components.RealTimeWaveformVisualizer
+import com.baris.audiolog.ui.components.RecordingTimer
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -39,10 +45,11 @@ fun RecorderScreen(context: Context, recorder: Recorder, navController: NavContr
     var showFileSaveScreen by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf("") }
     var startTime by remember { mutableStateOf<LocalDateTime?>(null) }
+    val audioFormat = settingsManager.getAudioFormat()
 
     if (showFileSaveScreen) {
         // File Save Screen
-        FileSaveScreen(
+        FileSaveDialog(
             fileName = fileName,
             onFileNameChange = { fileName = it },
             onSave = {
@@ -95,20 +102,23 @@ fun RecorderScreen(context: Context, recorder: Recorder, navController: NavContr
 
                             // Set the default file name to the start time with the file extension
                             startTime?.let {
-                                val audioFormat = settingsManager.getAudioFormat()
-                                fileName = it.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")) + audioFormat.extension
+                                //fileName = it.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + audioFormat.extension
+                                fileName = it.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
                             }
                         } else {
                             startTime = LocalDateTime.now()
-                            val audioFormat = settingsManager.getAudioFormat()
-                            val defaultFileName = startTime!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + audioFormat.extension
-                            recorder.start(defaultFileName)
+                            //val defaultFileName = startTime!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + audioFormat.extension
+                            val defaultFileName = startTime!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+                            recorder.start(defaultFileName, audioFormat)
                             isRecording = true
-
                         }
                     }
                 ) {
-                    Text(if (isRecording) "Stop Recording" else "Start Recording")
+                    if (isRecording) {
+                        Icon(painter = painterResource(id = R.drawable.pause100), contentDescription = "Pause")
+                    } else {
+                        Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Play")
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

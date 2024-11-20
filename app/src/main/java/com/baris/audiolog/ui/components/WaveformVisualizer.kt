@@ -1,4 +1,4 @@
-package com.baris.audiolog.ui
+package com.baris.audiolog.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border

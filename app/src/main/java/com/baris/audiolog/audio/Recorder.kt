@@ -14,14 +14,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-class Recorder(private val context: Context, private val audioFileWriter: AudioFileWriter) {
+class Recorder(private val context: Context, private val audioFileWriter: IAudioFileWriter) {
     private var audioRecord: AudioRecord? = null
     private var isRecording = false
     private var recordingJob: Job? = null
     private val temporaryBuffer = mutableListOf<ShortArray>()
     private val maxBufferChunks = 100 // Cap buffer size to prevent memory overuse
 
-    fun start(fileName: String) {
+    fun start(fileName: String, audioFormat: Int) {
         if (isRecording) {
             Log.w("Recorder", "Recording is already in progress")
             return
@@ -31,9 +31,14 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
         release()
 
         val sampleRate = 44100
-        val channelConfig = AudioFormat.CHANNEL_IN_MONO
-        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+        val channelConfig = AudioFormat.CHANNEL_IN_STEREO
+
+        // Get the minimum buffer size for the specified configuration
         val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+        if (bufferSize == AudioRecord.ERROR || bufferSize == AudioRecord.ERROR_BAD_VALUE) {
+            Log.e("Recorder", "Invalid buffer size: $bufferSize")
+            return
+        }
 
         try {
             audioRecord = AudioRecord(
@@ -53,7 +58,7 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
             }
 
             // Set the output file for writing audio
-            audioFileWriter.setOutputFile(fileName)
+            audioFileWriter.setOutputFile(fileName, audioFormat)
 
             // Start a coroutine for reading audio data
             recordingJob = CoroutineScope(Dispatchers.IO).launch {
@@ -71,7 +76,7 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
                             }
 
                             // Write the buffer to the file
-                            audioFileWriter.write(buffer)
+                            audioFileWriter.write(buffer, fileName, audioFormat)
                         }
                     }
                 } catch (e: Exception) {

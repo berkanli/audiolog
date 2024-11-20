@@ -1,4 +1,4 @@
-package com.baris.audiolog.ui
+package com.baris.audiolog.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,11 +26,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.baris.audiolog.audio.IAudioFileWriter
 import com.baris.audiolog.preferences.SettingsManager
+import com.baris.audiolog.ui.components.AudioFormatDropdown
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController,  settingsManager: SettingsManager) {
+fun SettingsScreen(
+    navController: NavController,
+    settingsManager: SettingsManager,
+    audioFileWriter: IAudioFileWriter
+) {
+    // Retrieve the saved audio format
     var selectedFormat by remember {
         mutableStateOf(settingsManager.getAudioFormat())
     }
@@ -38,9 +46,11 @@ fun SettingsScreen(navController: NavController,  settingsManager: SettingsManag
         topBar = {
             TopAppBar(
                 title = { Text(text = "Settings") },
-                 navigationIcon = { IconButton(onClick = { navController.navigate("home") }) {
-                    Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "Back")
-                 } }
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigate("home") }) {
+                        Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "Back")
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -65,13 +75,15 @@ fun SettingsScreen(navController: NavController,  settingsManager: SettingsManag
                 selectedFormat = selectedFormat,
                 onFormatChange = { newFormat ->
                     selectedFormat = newFormat
-                    settingsManager.saveAudioFormat(newFormat) // Save to SharedPreferences
+                    settingsManager.saveAudioFormat(newFormat) // Save the user's choice
                 }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            Button(onClick = { audioFileWriter.clearCache() }) {
+                Text("Clear Cache")
+            }
         }
     }
 }
-
-
