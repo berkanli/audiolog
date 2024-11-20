@@ -80,17 +80,36 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
 
     override fun getRecordedData(): ByteArray? {
         return try {
-            if (outputFile == null || !outputFile!!.exists()) {
-                Log.e("FileAudioFileWriter", "File does not exist: ${outputFile?.absolutePath}")
+            outputFile?.let {
+                if (!it.exists()) {
+                    Log.e("FileAudioFileWriter", "File does not exist: ${it.absolutePath}")
+                    null
+                } else {
+                    it.readBytes()
+                }
+            } ?: run {
+                Log.e("FileAudioFileWriter", "Output file is not set.")
                 null
-            } else {
-                outputFile!!.readBytes()
             }
         } catch (e: Exception) {
             Log.e("FileAudioFileWriter", "Error reading file: ${e.message}")
             null
         }
     }
+
+//    override fun getRecordedData(): ByteArray? {
+//        return try {
+//            if (outputFile == null || !outputFile!!.exists()) {
+//                Log.e("FileAudioFileWriter", "File does not exist: ${outputFile?.absolutePath}")
+//                null
+//            } else {
+//                outputFile!!.readBytes()
+//            }
+//        } catch (e: Exception) {
+//            Log.e("FileAudioFileWriter", "Error reading file: ${e.message}")
+//            null
+//        }
+//    }
 
     // Set the file for recording dynamically
     override fun setOutputFile(fileName: String, audioFormat: Int) {

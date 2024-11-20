@@ -1,18 +1,16 @@
 package com.baris.audiolog.audio
 
-import android.content.ContentValues
 import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.File
 
 class Recorder(private val context: Context, private val audioFileWriter: IAudioFileWriter) {
     private var audioRecord: AudioRecord? = null
@@ -30,12 +28,12 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
         // Clean up previous resources (if any)
         release()
 
-        val sampleRate = 44100
+        val sampleRate = 48000
         val channelConfig = AudioFormat.CHANNEL_IN_STEREO
 
         // Get the minimum buffer size for the specified configuration
         val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-        if (bufferSize == AudioRecord.ERROR || bufferSize == AudioRecord.ERROR_BAD_VALUE) {
+        if (bufferSize <= 0) {
             Log.e("Recorder", "Invalid buffer size: $bufferSize")
             return
         }
@@ -49,6 +47,7 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
                 bufferSize
             )
 
+            audioFileWriter.setOutputFile(fileName, audioFormat)
             audioRecord?.startRecording()
             isRecording = true
             Log.i("Recorder", "Recording started")
@@ -56,9 +55,6 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
             synchronized(temporaryBuffer) {
                 temporaryBuffer.clear() // Reset the buffer
             }
-
-            // Set the output file for writing audio
-            audioFileWriter.setOutputFile(fileName, audioFormat)
 
             // Start a coroutine for reading audio data
             recordingJob = CoroutineScope(Dispatchers.IO).launch {
@@ -73,6 +69,7 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
                                     temporaryBuffer.removeAt(0)
                                 }
                                 temporaryBuffer.add(buffer.copyOf())
+                                Log.d("Recorder", "Temporary buffer size: ${temporaryBuffer.size}")
                             }
 
                             // Write the buffer to the file
@@ -94,7 +91,7 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
     }
 
     fun stop() {
-        if (!isRecording) return
+        //if (!isRecording) return
 
         try {
             isRecording = false
@@ -129,35 +126,21 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
         }
     }
 
-    fun saveFilePublicly(context: Context, fileName: String, audioData: ByteArray) {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
-            put(MediaStore.Audio.Media.MIME_TYPE, "audio/x-wav")
-            put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_RECORDINGS) // Saves to Music folder
-        }
-
-        val resolver = context.contentResolver
-        val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-        uri?.let {
-            resolver.openOutputStream(it)?.use { outputStream ->
-                outputStream.write(audioData)
-            }
-        }
+    fun saveFileInternally(context: Context, fileName: String, audioData: ByteArray) {
+        val file = File(context.filesDir, fileName)
+        file.outputStream().use { it.write(audioData) }
     }
 
-    fun saveRecording(fileName: String) {
-        try {
-            // Ensure all writes are completed
-            runBlocking {
-                recordingJob?.join() // Wait for the recording coroutine to finish
-            }
+    fun getSavedAudioFiles(context: Context): List<File> {
+        val directory = context.filesDir  // Directory is located in app's internal storage
 
-            audioFileWriter.close()
-            Log.i("Recorder", "Recording saved as $fileName")
-        } catch (e: Exception) {
-            Log.e("Recorder", "Failed to save recording: ${e.message}")
+        // Make sure the directory exists
+        if (!directory.exists() || !directory.isDirectory) {
+            return emptyList()
         }
+
+        // Return all files in the directory
+        return directory.listFiles()?.toList() ?: emptyList()
     }
 
     fun getAudioData(): ByteArray? {

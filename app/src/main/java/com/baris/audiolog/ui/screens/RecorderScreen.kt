@@ -1,6 +1,7 @@
 package com.baris.audiolog.ui.screens
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,7 @@ import androidx.navigation.NavController
 import com.baris.audiolog.R
 import com.baris.audiolog.audio.Recorder
 import com.baris.audiolog.preferences.SettingsManager
+import com.baris.audiolog.ui.components.AudioFilesList
 import com.baris.audiolog.ui.components.FileSaveDialog
 import com.baris.audiolog.ui.components.RealTimeWaveformVisualizer
 import com.baris.audiolog.ui.components.RecordingTimer
@@ -40,12 +42,20 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecorderScreen(context: Context, recorder: Recorder, navController: NavController, settingsManager: SettingsManager) {
+fun RecorderScreen(
+    context: Context,
+    recorder: Recorder,
+    navController: NavController,
+    settingsManager: SettingsManager
+) {
     var isRecording by remember { mutableStateOf(false) }
     var showFileSaveScreen by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf("") }
     var startTime by remember { mutableStateOf<LocalDateTime?>(null) }
     val audioFormat = settingsManager.getAudioFormat()
+
+    // State to store audio data once recording is stopped
+    var audioData by remember { mutableStateOf<ByteArray?>(null) }
 
     if (showFileSaveScreen) {
         // File Save Screen
@@ -53,11 +63,13 @@ fun RecorderScreen(context: Context, recorder: Recorder, navController: NavContr
             fileName = fileName,
             onFileNameChange = { fileName = it },
             onSave = {
-
-                val audioData = recorder.getAudioData() // Implement this to retrieve audio bytes
-                recorder.saveFilePublicly(context, fileName, audioData!!)
-                //recorder.saveRecording(fileName)
-                showFileSaveScreen = false // Reset to the initial state
+                // Ensure audioData is not null before saving
+                audioData?.let { data ->
+                    recorder.saveFileInternally(context, fileName, data)
+                    showFileSaveScreen = false // Reset to the initial state
+                } ?: run {
+                    Log.e("RecorderScreen", "No audio data available to save.")
+                }
             },
             onDelete = {
                 recorder.deleteTemporaryBuffer()
@@ -92,22 +104,24 @@ fun RecorderScreen(context: Context, recorder: Recorder, navController: NavContr
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Button(
                     onClick = {
                         if (isRecording) {
+
+                            // Stop recording and retrieve audio data
                             recorder.stop()
+                            Log.d("RecorderScreen", "Stop button clicked.")
+                            audioData = recorder.getAudioData() // Capture audio data after stopping
                             isRecording = false
                             showFileSaveScreen = true // Navigate to file save screen
 
                             // Set the default file name to the start time with the file extension
                             startTime?.let {
-                                //fileName = it.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + audioFormat.extension
                                 fileName = it.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
                             }
                         } else {
+                            // Start recording
                             startTime = LocalDateTime.now()
-                            //val defaultFileName = startTime!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + audioFormat.extension
                             val defaultFileName = startTime!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
                             recorder.start(defaultFileName, audioFormat)
                             isRecording = true
@@ -130,7 +144,13 @@ fun RecorderScreen(context: Context, recorder: Recorder, navController: NavContr
 
                 // Waveform Visualizer
                 RealTimeWaveformVisualizer(recorder)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Audio Files List
+                AudioFilesList(context, recorder)
             }
         }
     }
 }
+

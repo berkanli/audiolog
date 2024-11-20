@@ -24,18 +24,10 @@ class SettingsManager(context: Context) {
 
     // Function to retrieve the saved audio format, defaulting to PCM if not set
     fun getAudioFormat(): Int {
-        // Try to retrieve the format as an integer
-        val storedFormat = sharedPreferences.getString(KEY_AUDIO_FORMAT, null)
-
-        // Check if the stored value is a valid integer
-        return if (storedFormat != null && storedFormat.toIntOrNull() != null) {
-            storedFormat.toInt()  // If it's valid, return the integer value
-        } else {
-            // If the stored value is invalid, reset the preference and return the default value
-            sharedPreferences.edit().remove(KEY_AUDIO_FORMAT).apply()  // Remove corrupted data
-            Log.d("SettingsManager", "Invalid or missing audio format, returning default: $DEFAULT_AUDIO_FORMAT")
-            DEFAULT_AUDIO_FORMAT  // Return default audio format
-        }
+        // Retrieve the audio format as an integer using getInt()
+        val format = sharedPreferences.getInt(KEY_AUDIO_FORMAT, DEFAULT_AUDIO_FORMAT)
+        Log.d("SettingsManager", "Retrieved audio format: $format")
+        return format
     }
 
     // Function to clear all saved preferences
