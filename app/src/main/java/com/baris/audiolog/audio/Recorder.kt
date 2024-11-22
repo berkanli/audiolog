@@ -73,7 +73,7 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
                             }
 
                             // Write the buffer to the file
-                            audioFileWriter.write(buffer, fileName, audioFormat)
+                            audioFileWriter.write(buffer)
                         }
                     }
                 } catch (e: Exception) {
@@ -133,7 +133,10 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
 
     fun getSavedAudioFiles(context: Context): List<File> {
         val directory = context.filesDir  // Directory is located in app's internal storage
-
+        Log.i("Recorder", "Files directory: ${context.filesDir.absolutePath}")
+        directory.listFiles()?.forEach {
+            Log.i("Recorder", "Found file: ${it.name}")
+        }
         // Make sure the directory exists
         if (!directory.exists() || !directory.isDirectory) {
             return emptyList()

@@ -19,53 +19,37 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
     private fun ensureDirectoryExists() {
         if (!outputDirectory.exists()) {
             val created = outputDirectory.mkdirs()
-            Log.d("FileAudioFileWriter", "Directory created: $created")
-            if (!created) {
-                Log.e("FileAudioFileWriter", "Failed to create directory: ${outputDirectory.absolutePath}")
-            }
-        }else {
+            Log.d("FileAudioFileWriter", "Directory created: $created, Path: ${outputDirectory.absolutePath}")
+        } else {
             Log.d("FileAudioFileWriter", "Directory already exists: ${outputDirectory.absolutePath}")
         }
     }
 
-    override fun write(buffer: ShortArray, fileName: String, audioFormat: Int) {
+    override fun write(buffer: ShortArray) {
         try {
+            // Ensure the output stream is initialized
             if (outputStream == null) {
-                // Ensure directory exists before creating the file
-                ensureDirectoryExists()
-
-                // Get the file extension from the enum
-                val fileFormat = AudioFileFormat.fromEncoding(audioFormat)
-                val fileExtension = fileFormat.extension
-
-                // Create the output file with the correct extension
-                outputFile = File(outputDirectory, "$fileName.$fileExtension")
-                Log.d("FileAudioFileWriter", "Output file path: ${outputFile!!.absolutePath}")
-
-                Log.d("FileAudioFileWriter", "Trying to create file: ${outputFile!!.absolutePath}")
-                outputStream = FileOutputStream(outputFile)
-                Log.d("FileAudioFileWriter", "OutputStream initialized successfully")
-
-                // After opening the output stream
-                if (outputFile!!.exists()) {
-                    Log.d("FileAudioFileWriter", "File created successfully: ${outputFile!!.absolutePath}")
-                } else {
-                    Log.e("FileAudioFileWriter", "Failed to create file: ${outputFile!!.absolutePath}")
+                if (outputFile == null) {
+                    throw IllegalStateException("Output file must be set using setOutputFile() before writing.")
                 }
+
+                Log.d("FileAudioFileWriter", "Initializing OutputStream for: ${outputFile!!.absolutePath}")
+                outputStream = FileOutputStream(outputFile)
             }
 
-            // Convert short array to byte array and write
+            // Convert the short array to a byte array
             val byteBuffer = ByteArray(buffer.size * 2)
             for (i in buffer.indices) {
                 byteBuffer[i * 2] = (buffer[i].toInt() and 0xFF).toByte()
                 byteBuffer[i * 2 + 1] = ((buffer[i].toInt() shr 8) and 0xFF).toByte()
             }
+
+            // Write the byte buffer to the file
             outputStream?.write(byteBuffer)
         } catch (e: Exception) {
             Log.e("FileAudioFileWriter", "Error writing audio: ${e.message}")
         }
     }
-
 
     override fun close() {
         try {
@@ -112,14 +96,27 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
 //    }
 
     // Set the file for recording dynamically
-    override fun setOutputFile(fileName: String, audioFormat: Int) {
-        // Extract the base name and ensure it has the correct extension
-//        val baseName = fileName.substringBeforeLast(".")
-//        val desiredExtension = fileName.substringAfterLast(".", "wav")
-//        outputFile = File(outputDirectory, "$baseName.$desiredExtension")
-        outputFile = File(outputDirectory, "${fileName}.${audioFormat}")
-        Log.d("FileAudioFileWriter", "Set output file to: ${outputFile!!.absolutePath}")
-    }
+//    override fun setOutputFile(fileName: String, audioFormat: Int) {
+//        try {
+//            // Close any existing stream to avoid file conflicts
+//            close()
+//
+//            // Ensure the directory exists
+//            ensureDirectoryExists()
+//
+//            // Determine the correct extension from the audio format
+//            val fileFormat = AudioFileFormat.fromEncoding(audioFormat)
+//            val fileExtension = fileFormat.extension
+//
+//            // Set the output file name with the correct extension
+//            outputFile = File(outputDirectory, "$fileName.$fileExtension")
+//            Log.d("FileAudioFileWriter", "Set output file to: ${outputFile!!.absolutePath}")
+//        } catch (e: Exception) {
+//            Log.e("FileAudioFileWriter", "Failed to set output file: ${e.message}")
+//        }
+//    }
+
+
 
     override fun clearCache() {
         try {

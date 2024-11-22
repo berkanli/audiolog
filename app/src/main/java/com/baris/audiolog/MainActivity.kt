@@ -37,8 +37,9 @@ class MainActivity : ComponentActivity() {
         // Create the output file for saving the audio data
         val audioFileWriter = AudioFileWriter(
             context = this, // Use the activity context
-            outputDirectory = getExternalFilesDir(null) ?: throw IOException("Failed to get external files directory")
+            outputDirectory = this.filesDir
         )
+
         recorder = Recorder(this, audioFileWriter)
         settingsManager = SettingsManager(this)
 
