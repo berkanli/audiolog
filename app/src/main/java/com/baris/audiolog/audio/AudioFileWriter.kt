@@ -96,25 +96,25 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
 //    }
 
     // Set the file for recording dynamically
-//    override fun setOutputFile(fileName: String, audioFormat: Int) {
-//        try {
-//            // Close any existing stream to avoid file conflicts
-//            close()
-//
-//            // Ensure the directory exists
-//            ensureDirectoryExists()
-//
-//            // Determine the correct extension from the audio format
-//            val fileFormat = AudioFileFormat.fromEncoding(audioFormat)
-//            val fileExtension = fileFormat.extension
-//
-//            // Set the output file name with the correct extension
-//            outputFile = File(outputDirectory, "$fileName.$fileExtension")
-//            Log.d("FileAudioFileWriter", "Set output file to: ${outputFile!!.absolutePath}")
-//        } catch (e: Exception) {
-//            Log.e("FileAudioFileWriter", "Failed to set output file: ${e.message}")
-//        }
-//    }
+    override fun setOutputFile(fileName: String, audioFormat: Int) {
+        try {
+            // Close any existing stream to avoid file conflicts
+            close()
+
+            // Ensure the directory exists
+            ensureDirectoryExists()
+
+            // Determine the correct extension from the audio format
+            val fileFormat = AudioFileFormat.fromEncoding(audioFormat)
+            val fileExtension = fileFormat.extension
+
+            // Set the output file name with the correct extension
+            outputFile = File(outputDirectory, "$fileName.$fileExtension")
+            Log.d("FileAudioFileWriter", "Set output file to: ${outputFile!!.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("FileAudioFileWriter", "Failed to set output file: ${e.message}")
+        }
+    }
 
 
 

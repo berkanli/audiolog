@@ -131,21 +131,6 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
         file.outputStream().use { it.write(audioData) }
     }
 
-    fun getSavedAudioFiles(context: Context): List<File> {
-        val directory = context.filesDir  // Directory is located in app's internal storage
-        Log.i("Recorder", "Files directory: ${context.filesDir.absolutePath}")
-        directory.listFiles()?.forEach {
-            Log.i("Recorder", "Found file: ${it.name}")
-        }
-        // Make sure the directory exists
-        if (!directory.exists() || !directory.isDirectory) {
-            return emptyList()
-        }
-
-        // Return all files in the directory
-        return directory.listFiles()?.toList() ?: emptyList()
-    }
-
     fun getAudioData(): ByteArray? {
         return audioFileWriter.getRecordedData() // Call the method from the writer
     }
@@ -162,4 +147,57 @@ class Recorder(private val context: Context, private val audioFileWriter: IAudio
             return temporaryBuffer.flatMap { it.toList() }.toShortArray()
         }
     }
+
+    fun getSavedAudioFiles(context: Context): List<File> {
+        val directory = context.filesDir // Directory located in the app's internal storage
+        Log.i("Recorder", "Files directory: ${directory.absolutePath}")
+
+        // Make sure the directory exists
+        if (!directory.exists() || !directory.isDirectory) {
+            Log.w("Recorder", "Directory does not exist or is not a directory.")
+            return emptyList()
+        }
+
+        // Create a set of valid audio files based on the supported extensions
+        val supportedExtensions = setOf("pcm", "wav", "mp3") // Add formats you want to support
+
+        // List files and filter by supported extensions
+        val audioFiles = directory.listFiles { file ->
+            file.isFile && file.extension in supportedExtensions
+        }?.toList() ?: emptyList()
+
+        // Ensure file uniqueness (this part depends on how files are being written)
+        val uniqueFiles = mutableSetOf<String>() // To track file names
+        val finalFiles = mutableListOf<File>()
+
+        audioFiles.forEach { file ->
+            if (!uniqueFiles.contains(file.name)) {
+                uniqueFiles.add(file.name)
+                finalFiles.add(file)
+            } else {
+                Log.w("Recorder", "Duplicate file found and excluded: ${file.name}")
+            }
+        }
+
+        // Log found files
+        finalFiles.forEach { Log.i("Recorder", "Valid audio file: ${it.name}") }
+
+        return finalFiles
+    }
+
+
+    /*fun getSavedAudioFiles(context: Context): List<File> {
+        val directory = context.filesDir  // Directory is located in app's internal storage
+        Log.i("Recorder", "Files directory: ${context.filesDir.absolutePath}")
+        directory.listFiles()?.forEach {
+            Log.i("Recorder", "Found file: ${it.name}")
+        }
+        // Make sure the directory exists
+        if (!directory.exists() || !directory.isDirectory) {
+            return emptyList()
+        }
+
+        // Return all files in the directory
+        return directory.listFiles()?.toList() ?: emptyList()
+    }*/
 }
