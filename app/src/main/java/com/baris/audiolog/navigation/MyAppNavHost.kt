@@ -15,7 +15,13 @@ import com.baris.audiolog.ui.screens.SettingsScreen
 
 
 @Composable
-fun MyAppNavHost(context: Context, recorder: Recorder, settingsManager: SettingsManager, audioFileWriter: AudioFileWriter) {
+fun MyAppNavHost(
+    context: Context,
+    recorder: Recorder,
+    settingsManager: SettingsManager,
+    audioFileWriter: AudioFileWriter,
+    onThemeChange: (Boolean) -> Unit
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
@@ -23,7 +29,7 @@ fun MyAppNavHost(context: Context, recorder: Recorder, settingsManager: Settings
             RecorderScreen(context, recorder, navController, settingsManager)
         }
         composable("settings") {
-            SettingsScreen(navController, settingsManager, audioFileWriter)
+            SettingsScreen(navController, settingsManager, audioFileWriter, onThemeChange)
         }
     }
 }

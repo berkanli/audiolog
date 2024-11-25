@@ -2,10 +2,12 @@ package com.baris.audiolog.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.Button
@@ -13,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -35,11 +38,16 @@ import com.baris.audiolog.ui.components.AudioFormatDropdown
 fun SettingsScreen(
     navController: NavController,
     settingsManager: SettingsManager,
-    audioFileWriter: IAudioFileWriter
+    audioFileWriter: IAudioFileWriter,
+    onThemeChange: (Boolean) -> Unit
 ) {
     // Retrieve the saved audio format
     var selectedFormat by remember {
         mutableStateOf(settingsManager.getAudioFormat())
+    }
+
+    var isDarkThemeEnabled by remember {
+        mutableStateOf(settingsManager.isDarkThemeEnabled())
     }
 
     Scaffold(
@@ -68,6 +76,20 @@ fun SettingsScreen(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "Enable Dark Theme")
+                Spacer(modifier = Modifier.width(8.dp))
+                Switch(
+                    checked = isDarkThemeEnabled,
+                    onCheckedChange = { isEnabled ->
+                        isDarkThemeEnabled = isEnabled
+                        onThemeChange(isEnabled)
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

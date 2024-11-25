@@ -14,15 +14,14 @@ class SettingsManager(context: Context) {
         private const val PREFERENCES_NAME = "audio_log_preferences"
         private const val KEY_AUDIO_FORMAT = "audio_format"
         private const val DEFAULT_AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT // Default format
+        private const val KEY_DARK_THEME = "dark_theme"
     }
 
-    // Function to save the audio format preference
     fun saveAudioFormat(format: Int) {
         // Save the audio format as an integer
         sharedPreferences.edit().putInt(KEY_AUDIO_FORMAT, format).apply()
     }
 
-    // Function to retrieve the saved audio format, defaulting to PCM if not set
     fun getAudioFormat(): Int {
         // Retrieve the audio format as an integer using getInt()
         val format = sharedPreferences.getInt(KEY_AUDIO_FORMAT, DEFAULT_AUDIO_FORMAT)
@@ -30,8 +29,15 @@ class SettingsManager(context: Context) {
         return format
     }
 
-    // Function to clear all saved preferences
     fun clearPreferences() {
         sharedPreferences.edit().clear().apply()
+    }
+
+    fun saveDarkTheme(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_DARK_THEME, enabled).apply()
+    }
+
+    fun isDarkThemeEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_DARK_THEME, false)
     }
 }

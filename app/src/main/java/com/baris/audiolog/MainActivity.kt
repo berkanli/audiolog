@@ -44,21 +44,25 @@ class MainActivity : ComponentActivity() {
         settingsManager = SettingsManager(this)
 
         setContent {
-            AudioLogTheme {
+            val isDarkThemeEnabled =
+                remember { mutableStateOf(settingsManager.isDarkThemeEnabled()) }
+
+            AudioLogTheme(darkTheme = isDarkThemeEnabled.value) {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
                     MyAppNavHost(
-                        context =  this,
+                        context = this,
                         recorder = recorder,
                         settingsManager = settingsManager,
-                        audioFileWriter = audioFileWriter
+                        audioFileWriter = audioFileWriter,
+                        onThemeChange = { isDark ->
+                            isDarkThemeEnabled.value = isDark
+                            settingsManager.saveDarkTheme(isDark) // Save the theme preference
+                        }
                     )
-
-
                 }
             }
         }
@@ -85,7 +89,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RequestPermissions(onPermissionGranted: @Composable () -> Unit) {
     val recordAudioPermission = android.Manifest.permission.RECORD_AUDIO
-    val writeStoragePermission = android.Manifest.permission.WRITE_EXTERNAL_STORAGE // Optional for modern Android versions.
+    val writeStoragePermission =
+        android.Manifest.permission.WRITE_EXTERNAL_STORAGE // Optional for modern Android versions.
 
     val permissionState = rememberMultiplePermissionsState(
         permissions = listOf(recordAudioPermission, writeStoragePermission)
