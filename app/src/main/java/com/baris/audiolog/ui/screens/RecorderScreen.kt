@@ -72,9 +72,10 @@ fun RecorderScreen(
                 }
             },
             onDelete = {
-                recorder.deleteTemporaryBuffer()
+                recorder.deleteTemporaryBuffer(context)
                 showFileSaveScreen = false // Reset to the initial state
-            }
+            },
+            onDismiss = {}
         )
     } else {
         Scaffold(

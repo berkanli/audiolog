@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
             outputDirectory = this.filesDir
         )
 
-        recorder = Recorder(this, audioFileWriter)
+        recorder = Recorder(audioFileWriter)
         settingsManager = SettingsManager(this)
 
         setContent {
@@ -72,13 +72,13 @@ class MainActivity : ComponentActivity() {
         super.onStop()
         // When the activity is stopped, stop and release resources
         recorder.stop()
-        recorder.release()
+        //recorder.release()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         // Ensure the recorder resources are released when the activity is destroyed
-        recorder.release()
+        //recorder.release()
     }
 
 

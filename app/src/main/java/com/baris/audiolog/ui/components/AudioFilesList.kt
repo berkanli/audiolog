@@ -27,8 +27,9 @@ fun AudioFilesList(context: Context, recorder: Recorder) {
                 text = file.name,
                 modifier = Modifier
                     .clickable {
-                        // Handle the file click, e.g., show options to export or copy
-
+                        // Example: Delete file logic
+                        recorder.deleteTemporaryBuffer(context)
+                        audioFiles = recorder.getSavedAudioFiles(context) // Refresh the list
                     }
                     .padding(16.dp)
             )
