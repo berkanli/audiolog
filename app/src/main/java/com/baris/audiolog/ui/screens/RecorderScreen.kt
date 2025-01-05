@@ -31,11 +31,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.baris.audiolog.R
+import com.baris.audiolog.audio.AudioFilesManager
 import com.baris.audiolog.audio.Recorder
 import com.baris.audiolog.preferences.SettingsManager
 import com.baris.audiolog.ui.components.AudioFilesList
 import com.baris.audiolog.ui.components.FileSaveDialog
-import com.baris.audiolog.ui.components.RealTimeWaveformVisualizer
 import com.baris.audiolog.ui.components.RecordingTimer
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -45,8 +45,9 @@ import java.time.format.DateTimeFormatter
 fun RecorderScreen(
     context: Context,
     recorder: Recorder,
-    navController: NavController,
-    settingsManager: SettingsManager
+    settingsManager: SettingsManager,
+    audioFilesManager: AudioFilesManager,
+    onSettingsClicked: () -> Unit,
 ) {
     var isRecording by remember { mutableStateOf(false) }
     var showFileSaveScreen by remember { mutableStateOf(false) }
@@ -65,14 +66,14 @@ fun RecorderScreen(
             onSave = {
                 // Ensure audioData is not null before saving
                 audioData?.let { data ->
-                    recorder.saveFileInternally(context, fileName, data)
+                    //recorder.saveFileInternally(context, fileName, data)
                     showFileSaveScreen = false // Reset to the initial state
                 } ?: run {
                     Log.e("RecorderScreen", "No audio data available to save.")
                 }
             },
             onDelete = {
-                recorder.deleteTemporaryBuffer(context)
+                //recorder.deleteTemporaryBuffer(context)
                 showFileSaveScreen = false // Reset to the initial state
             },
             onDismiss = {}
@@ -88,7 +89,7 @@ fun RecorderScreen(
                         Text(text = "Recorder")
                     },
                     navigationIcon = {
-                        IconButton(onClick = { navController.navigate("settings") }) {
+                        IconButton(onClick = onSettingsClicked ) {
                             Icon(
                                 imageVector = Icons.Outlined.Settings,
                                 contentDescription = "Settings"
@@ -124,7 +125,7 @@ fun RecorderScreen(
                             // Start recording
                             startTime = LocalDateTime.now()
                             val defaultFileName = startTime!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
-                            recorder.start(defaultFileName, audioFormat)
+                            recorder.start(defaultFileName)
                             isRecording = true
                         }
                     }
@@ -144,12 +145,13 @@ fun RecorderScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Waveform Visualizer
-                RealTimeWaveformVisualizer(recorder)
+                //RealTimeWaveformVisualizer(recorder)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Audio Files List
-                AudioFilesList(context, recorder)
+
+                AudioFilesList(audioFilesManager)
             }
         }
     }

@@ -1,35 +1,33 @@
 package com.baris.audiolog
 
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.baris.audiolog.audio.AudioFileWriter
-import com.baris.audiolog.navigation.MyAppNavHost
 import com.baris.audiolog.audio.Recorder
+import com.baris.audiolog.navigation.AppNavHost
 import com.baris.audiolog.preferences.SettingsManager
 import com.baris.audiolog.ui.theme.AudioLogTheme
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import java.io.IOException
+import android.Manifest
+import com.baris.audiolog.audio.AudioFilesManager
 
 class MainActivity : ComponentActivity() {
+    private val REQUEST_RECORD_AUDIO_PERMISSION = 200
     private lateinit var recorder: Recorder
     private lateinit var settingsManager: SettingsManager
+    private lateinit var audioFilesManager: AudioFilesManager
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +38,17 @@ class MainActivity : ComponentActivity() {
             outputDirectory = this.filesDir
         )
 
-        recorder = Recorder(audioFileWriter)
+        recorder = Recorder(this, audioFileWriter)
         settingsManager = SettingsManager(this)
+        audioFilesManager = AudioFilesManager(this)
+        // Check for RECORD_AUDIO permission
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            // Request the permission
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_RECORD_AUDIO_PERMISSION)
+        } else {
+            // Permission is already granted, start recording
+            startRecording()
+        }
 
         setContent {
             val isDarkThemeEnabled =
@@ -53,10 +60,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MyAppNavHost(
+                    AppNavHost(
                         context = this,
                         recorder = recorder,
                         settingsManager = settingsManager,
+                        audioFilesManager = audioFilesManager,
                         audioFileWriter = audioFileWriter,
                         onThemeChange = { isDark ->
                             isDarkThemeEnabled.value = isDark
@@ -64,6 +72,31 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 }
+            }
+        }
+    }
+
+    private fun startRecording() {
+        // Start the recording process
+        //TODO refactor this 
+        recorder.start("example_filename")
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+        deviceId: Int
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
+        if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                // Permission granted, start recording
+                startRecording()
+                Log.d("MainActivity", "Start Recording...")
+            } else {
+                // Permission denied, show a message to the user
+                Toast.makeText(this, "Permission denied to record audio", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -83,43 +116,3 @@ class MainActivity : ComponentActivity() {
 
 
 }
-
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun RequestPermissions(onPermissionGranted: @Composable () -> Unit) {
-    val recordAudioPermission = android.Manifest.permission.RECORD_AUDIO
-    val writeStoragePermission =
-        android.Manifest.permission.WRITE_EXTERNAL_STORAGE // Optional for modern Android versions.
-
-    val permissionState = rememberMultiplePermissionsState(
-        permissions = listOf(recordAudioPermission, writeStoragePermission)
-    )
-
-    var permissionsGranted by remember { mutableStateOf(false) }
-
-    // Update state when permissions are granted
-    LaunchedEffect(permissionState.allPermissionsGranted) {
-        permissionsGranted = permissionState.allPermissionsGranted
-    }
-
-//    if (permissionsGranted) {
-//        // Call the composable function when permissions are granted
-//        onPermissionGranted()
-//    } else {
-//        // Show UI for requesting permissions
-//
-//    }
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Permissions are required to record and save audio.")
-        Button(onClick = { permissionState.launchMultiplePermissionRequest() }) {
-            Text("Request Permissions")
-        }
-        onPermissionGranted()
-    }
-}
-

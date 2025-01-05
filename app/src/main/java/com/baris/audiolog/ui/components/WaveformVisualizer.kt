@@ -15,21 +15,21 @@ import androidx.compose.ui.unit.dp
 import com.baris.audiolog.audio.Recorder
 import kotlinx.coroutines.delay
 
-@Composable
-fun RealTimeWaveformVisualizer(recorder: Recorder) {
-    val bufferState = remember { mutableStateOf(ShortArray(0)) }
-
-    // Periodically fetch the buffer
-    LaunchedEffect(recorder) {
-        while (true) {
-            val combinedBuffer = recorder.getCombinedBuffer()
-            bufferState.value = combinedBuffer
-            delay(16L) // Update at ~60 FPS
-        }
-    }
-
-    WaveformVisualizer(buffer = bufferState.value)
-}
+//@Composable
+//fun RealTimeWaveformVisualizer(recorder: Recorder) {
+//    val bufferState = remember { mutableStateOf(ShortArray(0)) }
+//
+//    // Periodically fetch the buffer
+//    LaunchedEffect(recorder) {
+//        while (true) {
+//            val combinedBuffer = recorder.getCombinedBuffer()
+//            bufferState.value = combinedBuffer
+//            delay(16L) // Update at ~60 FPS
+//        }
+//    }
+//
+//    WaveformVisualizer(buffer = bufferState.value)
+//}
 
 @Composable
 fun WaveformVisualizer(

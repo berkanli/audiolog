@@ -5,6 +5,7 @@ import android.util.Log
 import com.baris.audiolog.audio.enums.AudioFileFormat
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 
 class AudioFileWriter(private val context: Context, private val outputDirectory: File) : IAudioFileWriter {
     private var outputStream: FileOutputStream? = null
@@ -19,9 +20,9 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
     private fun ensureDirectoryExists() {
         if (!outputDirectory.exists()) {
             val created = outputDirectory.mkdirs()
-            Log.d("FileAudioFileWriter", "Directory created: $created, Path: ${outputDirectory.absolutePath}")
+            Log.d("AudioFileWriter", "Directory created: $created, Path: ${outputDirectory.absolutePath}")
         } else {
-            Log.d("FileAudioFileWriter", "Directory already exists: ${outputDirectory.absolutePath}")
+            Log.d("AudioFileWriter", "Directory already exists: ${outputDirectory.absolutePath}")
         }
     }
 
@@ -33,7 +34,7 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
                     throw IllegalStateException("Output file must be set using setOutputFile() before writing.")
                 }
 
-                Log.d("FileAudioFileWriter", "Initializing OutputStream for: ${outputFile!!.absolutePath}")
+                Log.d("AudioFileWriter", "Initializing OutputStream for: ${outputFile!!.absolutePath}")
                 outputStream = FileOutputStream(outputFile)
             }
 
@@ -47,16 +48,16 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
             // Write the byte buffer to the file
             outputStream?.write(byteBuffer)
         } catch (e: Exception) {
-            Log.e("FileAudioFileWriter", "Error writing audio: ${e.message}")
+            Log.e("AudioFileWriter", "Error writing audio: ${e.message}")
         }
     }
 
     override fun close() {
         try {
             outputStream?.close()
-            Log.d("FileAudioFileWriter", "File closed successfully")
+            Log.d("AudioFileWriter", "File closed successfully")
         } catch (e: Exception) {
-            Log.e("FileAudioFileWriter", "Error closing file: ${e.message}")
+            Log.e("AudioFileWriter", "Error closing file: ${e.message}")
         } finally {
             outputStream = null
         }
@@ -66,53 +67,59 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
         return try {
             outputFile?.let {
                 if (!it.exists()) {
-                    Log.e("FileAudioFileWriter", "File does not exist: ${it.absolutePath}")
+                    Log.e("AudioFileWriter", "File does not exist: ${it.absolutePath}")
                     null
                 } else {
                     it.readBytes()
                 }
             } ?: run {
-                Log.e("FileAudioFileWriter", "Output file is not set.")
+                Log.e("AudioFileWriter", "Output file is not set.")
                 null
             }
         } catch (e: Exception) {
-            Log.e("FileAudioFileWriter", "Error reading file: ${e.message}")
+            Log.e("AudioFileWriter", "Error reading file: ${e.message}")
             null
         }
     }
 
-//    override fun getRecordedData(): ByteArray? {
-//        return try {
-//            if (outputFile == null || !outputFile!!.exists()) {
-//                Log.e("FileAudioFileWriter", "File does not exist: ${outputFile?.absolutePath}")
-//                null
-//            } else {
-//                outputFile!!.readBytes()
-//            }
+    fun getOutputFile(): File? {
+        return outputFile
+    }
+
+//    // Set the file for recording dynamically
+//    override fun setOutputFile(fileName: String, audioFormat: Int) {
+//        try {
+//            // Close any existing stream to avoid file conflicts
+//            close()
+//
+//            // Ensure the directory exists
+//            ensureDirectoryExists()
+//
+//            // Determine the correct extension from the audio format
+//            val fileFormat = AudioFileFormat.fromEncoding(audioFormat)
+//            val fileExtension = fileFormat.extension
+//
+//            // Set the output file name with the correct extension
+//            outputFile = File(outputDirectory, "$fileName.$fileExtension")
+//            Log.d("FileAudioFileWriter", "Set output file to: ${outputFile!!.absolutePath}")
 //        } catch (e: Exception) {
-//            Log.e("FileAudioFileWriter", "Error reading file: ${e.message}")
-//            null
+//            Log.e("FileAudioFileWriter", "Failed to set output file: ${e.message}")
 //        }
 //    }
 
-    // Set the file for recording dynamically
     override fun setOutputFile(fileName: String, audioFormat: Int) {
-        try {
-            // Close any existing stream to avoid file conflicts
-            close()
+        // Create the output file
+        outputFile = File(outputDirectory, "$fileName.pcm")
+        Log.d("AudioFileWriter", "Output file set to: ${outputFile!!.absolutePath}")
 
-            // Ensure the directory exists
-            ensureDirectoryExists()
-
-            // Determine the correct extension from the audio format
-            val fileFormat = AudioFileFormat.fromEncoding(audioFormat)
-            val fileExtension = fileFormat.extension
-
-            // Set the output file name with the correct extension
-            outputFile = File(outputDirectory, "$fileName.$fileExtension")
-            Log.d("FileAudioFileWriter", "Set output file to: ${outputFile!!.absolutePath}")
-        } catch (e: Exception) {
-            Log.e("FileAudioFileWriter", "Failed to set output file: ${e.message}")
+        // Ensure the file is created
+        if (!outputFile!!.exists()) {
+            try {
+                outputFile!!.createNewFile()
+                Log.d("AudioFileWriter", "Output file created.")
+            } catch (e: IOException) {
+                Log.e("AudioFileWriter", "Error creating output file: ${e.message}")
+            }
         }
     }
 

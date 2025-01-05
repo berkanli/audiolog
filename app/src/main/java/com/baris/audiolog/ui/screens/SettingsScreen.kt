@@ -36,10 +36,10 @@ import com.baris.audiolog.ui.components.AudioFormatDropdown
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    navController: NavController,
     settingsManager: SettingsManager,
     audioFileWriter: IAudioFileWriter,
-    onThemeChange: (Boolean) -> Unit
+    onThemeChange: (Boolean) -> Unit,
+    onArrowIconClicked: () -> Unit
 ) {
     // Retrieve the saved audio format
     var selectedFormat by remember {
@@ -55,7 +55,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = { Text(text = "Settings") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigate("home") }) {
+                    IconButton(onClick = { onArrowIconClicked }) {
                         Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "Back")
                     }
                 }
