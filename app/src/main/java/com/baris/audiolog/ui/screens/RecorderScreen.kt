@@ -1,6 +1,8 @@
 package com.baris.audiolog.ui.screens
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.baris.audiolog.R
 import com.baris.audiolog.audio.AudioFilesManager
@@ -123,9 +127,7 @@ fun RecorderScreen(
                             }
                         } else {
                             // Start recording
-                            startTime = LocalDateTime.now()
-                            val defaultFileName = startTime!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
-                            recorder.start(defaultFileName)
+                            recorder.start()
                             isRecording = true
                         }
                     }

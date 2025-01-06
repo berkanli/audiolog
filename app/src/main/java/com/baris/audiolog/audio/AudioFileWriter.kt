@@ -6,6 +6,8 @@ import com.baris.audiolog.audio.enums.AudioFileFormat
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class AudioFileWriter(private val context: Context, private val outputDirectory: File) : IAudioFileWriter {
     private var outputStream: FileOutputStream? = null
@@ -107,9 +109,11 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
 //        }
 //    }
 
-    override fun setOutputFile(fileName: String, audioFormat: Int) {
+    override fun setOutputFile(audioFormat: Int) {
         // Create the output file
-        outputFile = File(outputDirectory, "$fileName.pcm")
+        val defaultFileName = LocalDateTime.now()!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+        val format = AudioFileFormat.fromEncoding(audioFormat)
+        outputFile = File(outputDirectory, "${defaultFileName}.${format.extension}")
         Log.d("AudioFileWriter", "Output file set to: ${outputFile!!.absolutePath}")
 
         // Ensure the file is created

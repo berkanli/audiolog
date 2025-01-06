@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_RECORD_AUDIO_PERMISSION)
         } else {
             // Permission is already granted, start recording
-            startRecording()
+            recorder.permissionsGranted = true
         }
 
         setContent {
@@ -76,12 +76,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun startRecording() {
-        // Start the recording process
-        //TODO refactor this 
-        recorder.start("example_filename")
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -92,10 +86,11 @@ class MainActivity : ComponentActivity() {
         if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 // Permission granted, start recording
-                startRecording()
-                Log.d("MainActivity", "Start Recording...")
+                recorder.permissionsGranted = true
+                Log.d("MainActivity", "Permission granted")
             } else {
                 // Permission denied, show a message to the user
+                recorder.permissionsGranted = false
                 Toast.makeText(this, "Permission denied to record audio", Toast.LENGTH_SHORT).show()
             }
         }

@@ -1,10 +1,13 @@
 package com.baris.audiolog.audio
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -17,6 +20,7 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
     private var recordingJob: Job? = null
     private val temporaryBuffer = mutableListOf<ShortArray>()
     private val maxBufferChunks = 10
+    var permissionsGranted = false
 
     companion object {
         private var _sampleRate = 48000
@@ -40,9 +44,15 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
         private fun getAudioFormat() = _audioFormat
     }
 
-    fun start(fileName: String) {
+    fun start() {
         if (isRecording) {
             Log.w("Recorder", "Recording is already in progress")
+            return
+        }
+
+        // Check permissions before proceeding
+        if (!permissionsGranted) {
+            Log.e("Recorder", "Permissions not granted")
             return
         }
 
@@ -68,7 +78,7 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
                 return
             }
 
-            audioFileWriter.setOutputFile(fileName, audioFormat)
+            audioFileWriter.setOutputFile(audioFormat)
             audioRecord?.startRecording()
             isRecording = true
             Log.i("Recorder", "Recording started")
@@ -152,5 +162,14 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
 
     fun getAudioData(): ByteArray? {
         return audioFileWriter.getRecordedData()
+    }
+
+     fun checkPermissions(): Boolean {
+        // Check for necessary permissions
+        val recordAudioPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+        val writeExternalStoragePermission = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        return recordAudioPermission == PackageManager.PERMISSION_GRANTED &&
+                writeExternalStoragePermission == PackageManager.PERMISSION_GRANTED
     }
 }
