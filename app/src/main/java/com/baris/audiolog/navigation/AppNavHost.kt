@@ -27,7 +27,7 @@ fun AppNavHost(
 
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
-            RecorderScreen(context, recorder, settingsManager, audioFilesManager){
+            RecorderScreen(context, recorder, settingsManager, audioFilesManager, audioFileWriter){
                 navController.navigate("settings")
             }
         }

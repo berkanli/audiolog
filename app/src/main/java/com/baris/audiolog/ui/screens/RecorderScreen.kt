@@ -35,6 +35,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.baris.audiolog.R
+import com.baris.audiolog.audio.AudioFileWriter
 import com.baris.audiolog.audio.AudioFilesManager
 import com.baris.audiolog.audio.Recorder
 import com.baris.audiolog.preferences.SettingsManager
@@ -51,13 +52,12 @@ fun RecorderScreen(
     recorder: Recorder,
     settingsManager: SettingsManager,
     audioFilesManager: AudioFilesManager,
+    audioFileWriter: AudioFileWriter,
     onSettingsClicked: () -> Unit,
 ) {
     var isRecording by remember { mutableStateOf(false) }
     var showFileSaveScreen by remember { mutableStateOf(false) }
-    var fileName by remember { mutableStateOf("") }
-    var startTime by remember { mutableStateOf<LocalDateTime?>(null) }
-    val audioFormat = settingsManager.getAudioFormat()
+    var fileName by remember { mutableStateOf( "") }
 
     // State to store audio data once recording is stopped
     var audioData by remember { mutableStateOf<ByteArray?>(null) }
@@ -68,17 +68,12 @@ fun RecorderScreen(
             fileName = fileName,
             onFileNameChange = { fileName = it },
             onSave = {
-                // Ensure audioData is not null before saving
-                audioData?.let { data ->
-                    //recorder.saveFileInternally(context, fileName, data)
-                    showFileSaveScreen = false // Reset to the initial state
-                } ?: run {
-                    Log.e("RecorderScreen", "No audio data available to save.")
-                }
+                recorder.saveAndClose()
+                showFileSaveScreen = false
             },
             onDelete = {
-                //recorder.deleteTemporaryBuffer(context)
-                showFileSaveScreen = false // Reset to the initial state
+                recorder.delete()
+                showFileSaveScreen = false
             },
             onDismiss = {}
         )
@@ -119,12 +114,9 @@ fun RecorderScreen(
                             Log.d("RecorderScreen", "Stop button clicked.")
                             audioData = recorder.getAudioData() // Capture audio data after stopping
                             isRecording = false
+                            fileName = audioFileWriter.getFileName() ?: ""
                             showFileSaveScreen = true // Navigate to file save screen
 
-                            // Set the default file name to the start time with the file extension
-                            startTime?.let {
-                                fileName = it.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
-                            }
                         } else {
                             // Start recording
                             recorder.start()

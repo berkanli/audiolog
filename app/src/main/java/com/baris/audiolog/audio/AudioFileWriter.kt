@@ -9,7 +9,8 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class AudioFileWriter(private val context: Context, private val outputDirectory: File) : IAudioFileWriter {
+class AudioFileWriter(private val context: Context, private val outputDirectory: File) :
+    IAudioFileWriter {
     private var outputStream: FileOutputStream? = null
     private var outputFile: File? = null
 
@@ -22,7 +23,10 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
     private fun ensureDirectoryExists() {
         if (!outputDirectory.exists()) {
             val created = outputDirectory.mkdirs()
-            Log.d("AudioFileWriter", "Directory created: $created, Path: ${outputDirectory.absolutePath}")
+            Log.d(
+                "AudioFileWriter",
+                "Directory created: $created, Path: ${outputDirectory.absolutePath}"
+            )
         } else {
             Log.d("AudioFileWriter", "Directory already exists: ${outputDirectory.absolutePath}")
         }
@@ -36,7 +40,10 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
                     throw IllegalStateException("Output file must be set using setOutputFile() before writing.")
                 }
 
-                Log.d("AudioFileWriter", "Initializing OutputStream for: ${outputFile!!.absolutePath}")
+                Log.d(
+                    "AudioFileWriter",
+                    "Initializing OutputStream for: ${outputFile!!.absolutePath}"
+                )
                 outputStream = FileOutputStream(outputFile)
             }
 
@@ -88,30 +95,10 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
         return outputFile
     }
 
-//    // Set the file for recording dynamically
-//    override fun setOutputFile(fileName: String, audioFormat: Int) {
-//        try {
-//            // Close any existing stream to avoid file conflicts
-//            close()
-//
-//            // Ensure the directory exists
-//            ensureDirectoryExists()
-//
-//            // Determine the correct extension from the audio format
-//            val fileFormat = AudioFileFormat.fromEncoding(audioFormat)
-//            val fileExtension = fileFormat.extension
-//
-//            // Set the output file name with the correct extension
-//            outputFile = File(outputDirectory, "$fileName.$fileExtension")
-//            Log.d("FileAudioFileWriter", "Set output file to: ${outputFile!!.absolutePath}")
-//        } catch (e: Exception) {
-//            Log.e("FileAudioFileWriter", "Failed to set output file: ${e.message}")
-//        }
-//    }
-
     override fun setOutputFile(audioFormat: Int) {
         // Create the output file
-        val defaultFileName = LocalDateTime.now()!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+        val defaultFileName =
+            LocalDateTime.now()!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
         val format = AudioFileFormat.fromEncoding(audioFormat)
         outputFile = File(outputDirectory, "${defaultFileName}.${format.extension}")
         Log.d("AudioFileWriter", "Output file set to: ${outputFile!!.absolutePath}")
@@ -127,7 +114,9 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
         }
     }
 
-
+    fun getFileName(): String? {
+        return outputFile?.nameWithoutExtension
+    }
 
     override fun clearCache() {
         try {
@@ -144,10 +133,26 @@ class AudioFileWriter(private val context: Context, private val outputDirectory:
                     Log.d("FileAudioFileWriter", "No files to delete in cache")
                 }
             } else {
-                Log.d("FileAudioFileWriter", "Output directory does not exist or is not a directory")
+                Log.d(
+                    "FileAudioFileWriter",
+                    "Output directory does not exist or is not a directory"
+                )
             }
         } catch (e: Exception) {
             Log.e("FileAudioFileWriter", "Failed to clear cache: ${e.message}")
+        }
+    }
+
+    fun deleteOutputFile() {
+        try {
+            outputFile?.let {
+                val deleted = it.delete()
+                Log.d("AudioFileWriter", "Deleted output file: ${it.name}, Success: $deleted")
+            } ?: run {
+                Log.e("AudioFileWriter", "Output file is not set.")
+            }
+        } catch (e: Exception) {
+            Log.e("AudioFileWriter", "Failed to delete output file: ${e.message}")
         }
     }
 }

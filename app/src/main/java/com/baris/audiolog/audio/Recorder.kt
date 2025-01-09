@@ -43,7 +43,7 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
         private fun getChannelConfig() = _channelConfig
         private fun getAudioFormat() = _audioFormat
     }
-
+    //TODO add save-close function
     fun start() {
         if (isRecording) {
             Log.w("Recorder", "Recording is already in progress")
@@ -149,8 +149,6 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
             }
         } catch (e: Exception) {
             Log.e("Recorder", "Failed to stop recording: ${e.message}")
-        } finally {
-            release()
         }
     }
 
@@ -160,16 +158,21 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
         Log.i("Recorder", "AudioRecord released")
     }
 
-    fun getAudioData(): ByteArray? {
-        return audioFileWriter.getRecordedData()
+    fun saveAndClose() {
+        stop()
+        audioFileWriter.close()
+        release()
+        Log.i("Recorder", "Recording saved and closed")
     }
 
-     fun checkPermissions(): Boolean {
-        // Check for necessary permissions
-        val recordAudioPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
-        val writeExternalStoragePermission = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    fun delete() {
+        audioFileWriter.deleteOutputFile()
+        // Perform any additional cleanup if necessary
+        release()
+        Log.i("Recorder", "Recording data deleted")
+    }
 
-        return recordAudioPermission == PackageManager.PERMISSION_GRANTED &&
-                writeExternalStoragePermission == PackageManager.PERMISSION_GRANTED
+    fun getAudioData(): ByteArray? {
+        return audioFileWriter.getRecordedData()
     }
 }
