@@ -1,18 +1,17 @@
 package com.baris.audiolog.audio
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class Recorder(private val context: Context, private val audioFileWriter: AudioFileWriter) {
     private var audioRecord: AudioRecord? = null
@@ -21,6 +20,7 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
     private val temporaryBuffer = mutableListOf<ShortArray>()
     private val maxBufferChunks = 10
     var permissionsGranted = false
+    private var startDate: String? = null
 
     companion object {
         private var _sampleRate = 48000
@@ -43,7 +43,7 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
         private fun getChannelConfig() = _channelConfig
         private fun getAudioFormat() = _audioFormat
     }
-    //TODO add save-close function
+
     fun start() {
         if (isRecording) {
             Log.w("Recorder", "Recording is already in progress")
@@ -78,7 +78,7 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
                 return
             }
 
-            audioFileWriter.setOutputFile(audioFormat)
+            setStartDate()
             audioRecord?.startRecording()
             isRecording = true
             Log.i("Recorder", "Recording started")
@@ -158,15 +158,17 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
         Log.i("Recorder", "AudioRecord released")
     }
 
-    fun saveAndClose() {
+    fun saveAndClose(fileName: String) {
+        isRecording = false
         stop()
         audioFileWriter.close()
+        audioFileWriter.setOutputFile(fileName, _audioFormat)
         release()
         Log.i("Recorder", "Recording saved and closed")
     }
 
     fun delete() {
-        audioFileWriter.deleteOutputFile()
+        audioFileWriter.clearBuffer()
         // Perform any additional cleanup if necessary
         release()
         Log.i("Recorder", "Recording data deleted")
@@ -174,5 +176,13 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
 
     fun getAudioData(): ByteArray? {
         return audioFileWriter.getRecordedData()
+    }
+
+    private fun setStartDate() {
+        startDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+    }
+
+    fun getStartDate(): String? {
+        return startDate
     }
 }

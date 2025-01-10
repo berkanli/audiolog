@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,34 +29,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import com.baris.audiolog.audio.IAudioFileWriter
-import com.baris.audiolog.preferences.SettingsManager
 import com.baris.audiolog.ui.components.AudioFormatDropdown
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    settingsManager: SettingsManager,
-    audioFileWriter: IAudioFileWriter,
     onThemeChange: (Boolean) -> Unit,
-    onArrowIconClicked: () -> Unit
+    onArrowIconClicked: () -> Unit,
+    onFormatChange: (Int) -> Unit,
+    onClearCacheClicked: () -> Unit,
+    initialSelectedFormat: Int,
+    initialIsDarkThemeEnabled: Boolean
 ) {
-    // Retrieve the saved audio format
-    var selectedFormat by remember {
-        mutableStateOf(settingsManager.getAudioFormat())
-    }
+    //TODO delete broken formats
+    //TODO add dialog and SnackBar for deleteCache
+    //TODO add audio visualizer
+    //TODO files can be deletable one by one or multiple.
+    //TODO add intent when trying to listen a file
 
-    var isDarkThemeEnabled by remember {
-        mutableStateOf(settingsManager.isDarkThemeEnabled())
-    }
+    var selectedFormat by remember { mutableIntStateOf(initialSelectedFormat) }
+    var isDarkThemeEnabled by remember { mutableStateOf(initialIsDarkThemeEnabled) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = "Settings") },
                 navigationIcon = {
-                    IconButton(onClick = { onArrowIconClicked }) {
+                    IconButton(onClick = onArrowIconClicked) {
                         Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "Back")
                     }
                 }
@@ -97,13 +97,13 @@ fun SettingsScreen(
                 selectedFormat = selectedFormat,
                 onFormatChange = { newFormat ->
                     selectedFormat = newFormat
-                    settingsManager.saveAudioFormat(newFormat) // Save the user's choice
+                    onFormatChange(newFormat)
                 }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = { audioFileWriter.clearCache() }) {
+            Button(onClick = onClearCacheClicked) {
                 Text("Clear Cache")
             }
         }

@@ -34,7 +34,6 @@ class MainActivity : ComponentActivity() {
 
         // Create the output file for saving the audio data
         val audioFileWriter = AudioFileWriter(
-            context = this, // Use the activity context
             outputDirectory = this.filesDir
         )
 

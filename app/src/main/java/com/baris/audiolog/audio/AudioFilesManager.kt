@@ -1,14 +1,13 @@
 package com.baris.audiolog.audio
 
 import android.content.Context
+import android.util.Log
 import java.io.File
 
 class AudioFilesManager(private val context: Context) {
 
-    // Directory where the audio files are saved
     private val audioFilesDirectory: File = context.filesDir
 
-    // Function to fetch all saved audio files
     fun fetchSavedFiles(): List<File> {
         val filesList = mutableListOf<File>()
         audioFilesDirectory.listFiles()?.forEach { file ->
@@ -17,6 +16,35 @@ class AudioFilesManager(private val context: Context) {
             }
         }
         return filesList
+    }
+
+    fun deleteFile(file: File): Boolean {
+        return file.delete()
+    }
+
+    fun clearCache() {
+        try {
+            if (audioFilesDirectory.exists() && audioFilesDirectory.isDirectory) {
+                val deletedFiles = audioFilesDirectory.listFiles()?.map { file ->
+                    val deleted = file.delete()
+                    Log.d("AudioFilesManager", "Deleted ${file.name}: $deleted")
+                    deleted
+                } ?: listOf()
+
+                if (deletedFiles.isNotEmpty()) {
+                    Log.d("AudioFilesManager", "Cache cleared successfully")
+                } else {
+                    Log.d("AudioFilesManager", "No files to delete in cache")
+                }
+            } else {
+                Log.d(
+                    "AudioFilesManager",
+                    "Audio files directory does not exist or is not a directory"
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("AudioFilesManager", "Failed to clear cache: ${e.message}")
+        }
     }
 }
 
