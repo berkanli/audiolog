@@ -22,7 +22,7 @@ class Recorder(private val context: Context, private val audioFileWriter: AudioF
     var permissionsGranted = false
     private var startDate: String? = null
 
-    companion object {
+     companion object {
         private var _sampleRate = 48000
         private var _channelConfig = AudioFormat.CHANNEL_IN_STEREO
         private var _audioFormat = AudioFormat.ENCODING_PCM_16BIT

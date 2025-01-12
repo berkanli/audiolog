@@ -28,6 +28,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var settingsManager: SettingsManager
     private lateinit var audioFilesManager: AudioFilesManager
 
+    //TODO delete broken formats
+    //TODO add audio visualizer
+    //TODO files can be deletable one by one or multiple.
+    //TODO add intent when trying to listen a file
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

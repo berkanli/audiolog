@@ -14,7 +14,6 @@ import com.baris.audiolog.ui.components.AudioFilesList
 import com.baris.audiolog.ui.screens.RecorderScreen
 import com.baris.audiolog.ui.screens.SettingsScreen
 
-
 @Composable
 fun AppNavHost(
     context: Context,
@@ -36,7 +35,10 @@ fun AppNavHost(
                 onDeleteRecording = recorder::delete,
                 getFileName = { recorder.getStartDate() ?: "" },
                 audioFilesList = {
-                    AudioFilesList(audioFilesManager)
+                    AudioFilesList(
+                        audioFiles = audioFilesManager.fetchSavedFiles(),
+                        onDeleteFile = {audioFilesManager.deleteFile(it)},
+                    )
                 }
             )
         }
