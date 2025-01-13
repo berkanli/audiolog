@@ -2,6 +2,10 @@ package com.baris.audiolog.navigation
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 
@@ -24,6 +28,7 @@ fun AppNavHost(
     onThemeChange: (Boolean) -> Unit
 ) {
     val navController = rememberNavController()
+    val audioFiles = remember { mutableStateOf(audioFilesManager.fetchSavedFiles()) }
 
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
@@ -31,13 +36,19 @@ fun AppNavHost(
                 onSettingsClicked = { navController.navigate("settings") },
                 onStartRecording = recorder::start,
                 onStopRecording = recorder::stop,
-                onSaveRecording = { fileName -> recorder.saveAndClose(fileName) },
+                onSaveRecording = { fileName ->
+                    recorder.saveAndClose(fileName)
+                    audioFiles.value = audioFilesManager.fetchSavedFiles()
+                },
                 onDeleteRecording = recorder::delete,
                 getFileName = { recorder.getStartDate() ?: "" },
                 audioFilesList = {
                     AudioFilesList(
-                        audioFiles = audioFilesManager.fetchSavedFiles(),
-                        onDeleteFile = {audioFilesManager.deleteFile(it)},
+                        audioFiles = audioFiles.value,
+                        onDeleteFile = { fileName ->
+                            audioFilesManager.deleteFile(fileName)
+                            audioFiles.value = audioFilesManager.fetchSavedFiles()
+                        }
                     )
                 }
             )

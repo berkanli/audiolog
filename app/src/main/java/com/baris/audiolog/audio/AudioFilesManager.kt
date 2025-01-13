@@ -18,8 +18,13 @@ class AudioFilesManager(private val context: Context) {
         return filesList
     }
 
-    fun deleteFile(file: File): Boolean {
-        return file.delete()
+    fun deleteFile(fileName: String): Boolean {
+        val fileToDelete = File(audioFilesDirectory, fileName)
+        return if (fileToDelete.exists() && fileToDelete.isFile) {
+            fileToDelete.delete()
+        } else {
+            false
+        }
     }
 
     fun clearCache() {

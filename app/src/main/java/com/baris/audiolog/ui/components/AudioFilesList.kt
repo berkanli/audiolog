@@ -6,10 +6,13 @@ import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,7 +30,7 @@ import java.io.File
 @Composable
 fun AudioFilesList(
     audioFiles: List<File>,
-    onDeleteFile: (File) -> Unit
+    onDeleteFile: (String) -> Unit
 ) {
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -43,7 +46,7 @@ fun AudioFilesList(
                     fileToDelete?.let { file ->
                         fileToDelete = null
                         showDeleteDialog = false
-                        onDeleteFile(file)
+                        onDeleteFile(file.name)
                     }
                 }) {
                     Text("Confirm")
@@ -61,10 +64,10 @@ fun AudioFilesList(
         contentPadding = PaddingValues(16.dp)
     ) {
         items(audioFiles) { file ->
-            Text(
-                text = file.name,
+            Card(
                 modifier = Modifier
                     .padding(vertical = 8.dp)
+                    .fillMaxWidth()
                     .combinedClickable(
                         onClick = {
                             // Single tap: Open intent to look for a media player app
@@ -94,8 +97,14 @@ fun AudioFilesList(
                             fileToDelete = file
                             showDeleteDialog = true
                         }
-                    )
-            )
+                    ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Text(
+                    text = file.name,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
     }
 }
